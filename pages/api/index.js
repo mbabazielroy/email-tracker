@@ -5,26 +5,33 @@ import { useState } from 'react'
 export default function Home() {
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
+    setMessage('')
+
     try {
       const response = await fetch('/api/submit-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
+
       const data = await response.json()
-      setMessage(data.message)
-      setEmail('')
-      try {
-        // Your code here
-      } catch (error) {
-        console.error('An error occurred:', error.message);
-        res.status(500).json({ message: 'Error submitting email', error: error.message })
+
+      if (response.ok) {
+        setMessage(data.message)
+        setEmail('')
+      } else {
+        setMessage(`Error: ${data.message || 'Failed to submit email'}`)
       }
+    } catch (error) {
+      console.error('An error occurred:', error)
+      setMessage('An unexpected error occurred. Please try again.')
     } finally {
-      res.status(405).json({ message: 'Method not allowed' })
+      setIsLoading(false)
     }
   }
 
@@ -48,13 +55,16 @@ export default function Home() {
           </div>
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            disabled={isLoading}
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            Submit
+            {isLoading ? 'Submitting...' : 'Submit'}
           </button>
         </form>
         {message && (
-          <p className="mt-4 text-center text-green-600">{message}</p>
+          <p className={`mt-4 text-center ${message.startsWith('Error') ? 'text-red-600' : 'text-green-600'}`}>
+            {message}
+          </p>
         )}
       </div>
     </div>
