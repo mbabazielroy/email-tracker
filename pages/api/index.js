@@ -17,8 +17,14 @@ export default function Home() {
       const data = await response.json()
       setMessage(data.message)
       setEmail('')
-    } catch (error) {
-      setMessage('Error submitting email')
+      try {
+        // Your code here
+      } catch (error) {
+        console.error('An error occurred:', error.message);
+        res.status(500).json({ message: 'Error submitting email', error: error.message })
+      }
+    } finally {
+      res.status(405).json({ message: 'Method not allowed' })
     }
   }
 
